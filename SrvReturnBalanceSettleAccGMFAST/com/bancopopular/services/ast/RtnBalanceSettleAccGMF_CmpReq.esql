@@ -17,7 +17,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		DECLARE refMQRFH2 REFERENCE TO OutputRoot.MQRFH2;
 		DECLARE refInp REFERENCE TO InputRoot.XMLNSC;
 		MOVE refInp LASTCHILD;
-		MOVE refInp LASTCHILD;
+		MOVE refInp LASTCHILD; 
 		
 		--Establece cabeceras para generar respuesta
 		SET refEnv.MQMD   = InputRoot.MQMD;
