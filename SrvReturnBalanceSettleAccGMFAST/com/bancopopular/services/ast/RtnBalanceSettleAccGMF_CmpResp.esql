@@ -1,0 +1,111 @@
+BROKER SCHEMA com.bancopopular.services.ast
+
+
+CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpResp
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		--Referencia a datos del mensaje original
+		DECLARE refOri REFERENCE TO Environment.Variables.headers;
+		
+		/*******************************************************
+		 Copiar cabeceras para establecer en mensaje response
+		*******************************************************/
+		SET OutputRoot.MQMD   = refOri.MQMD;
+		SET OutputRoot.MQRFH2 = refOri.MQRFH2;
+		
+		--Declara Referencia a MQRFH2
+		DECLARE refMQRFH2 REFERENCE TO OutputRoot.MQRFH2;
+
+		--Establece Idlog correspondiente a respuesta Back-end
+		SET refMQRFH2.usr.log.idLog	= '3';
+		--Establece otros datos de Auditoria
+		CALL common.procedures.general.createMsgLogs(refMQRFH2, refMQRFH2.usr.log.idLog, 'WS');
+		
+		--Referencia a datos de respuesta AST
+		DECLARE refDataRes REFERENCE TO InputRoot.JSON.Data;
+		DECLARE statusCode INTEGER COALESCE(refDataRes.status.statusCode, InputRoot.HTTPResponseHeader."X-Original-HTTP-Status-Code");
+		DECLARE statusDesc CHARACTER COALESCE(refDataRes.status.statusDesc, InputRoot.HTTPResponseHeader."X-Original-HTTP-Status-Line");
+		DECLARE codResp    CHARACTER COALESCE(CAST(statusCode AS CHARACTER), '99');
+
+		IF EXISTS(InputRoot.JSON.Data[]) THEN
+			--Establece información para auditoría a partir de Data de respuesta AST
+			SET OutputRoot.JSON.Data = InputRoot.JSON.Data;
+		ELSE
+			--Establece información para auditoría a partir de Header de respuesta AST
+			SET OutputRoot.JSON.Data."HTTPResponseHeader".Status.statusCode = statusCode;
+			SET OutputRoot.JSON.Data."HTTPResponseHeader".Status.statusDesc = statusDesc;
+		END IF;
+		
+		IF CAST(codResp AS INTEGER) = 0 THEN
+			SET codResp = '0';
+		ELSE
+			SET codResp = TRIM(codResp);
+		END IF;
+		
+		--Establece nombres de proveedor y aplicación
+		SET refMQRFH2.usr.log.nmProvider		= Provider;
+		SET refMQRFH2.usr.log.nameApplication	= Service;
+				
+		--Envia mensaje de Auditoria
+		PROPAGATE TO TERMINAL 'out1' DELETE NONE;
+		SET OutputRoot.JSON = NULL;
+		
+		/****************************************
+		 Genera mensaje de respuesta del Servicio
+		****************************************/
+		--Datos para mensaje de respuesta
+		DECLARE refParm REFERENCE TO refMQRFH2.usr.response.WS;
+		DECLARE v1 NAMESPACE refParm.nameSpace.*:v1;
+		DECLARE nmSrvRes1  CHARACTER COALESCE(refParm.nmMsg1, 'ApplicationFault');
+		DECLARE nmSrvRes2  CHARACTER COALESCE(refParm.nmMsg2, 'FaultRs');
+		
+		--Almacena respuesta de FC y operacion
+		SET refMQRFH2.usr.Result	= statusCode;
+		SET refMQRFH2.usr.operation = Service;
+		
+		--Establece de referencias a mensaje de respuesta
+		CREATE FIELD OutputRoot.XMLNSC.v1:{nmSrvRes1}.v1:{nmSrvRes2};
+		DECLARE refOut REFERENCE TO OutputRoot.XMLNSC.v1:{nmSrvRes1}.v1:{nmSrvRes2};
+		
+		--Organiza nombre namespace
+		SET refOut.(XMLNSC.NamespaceDecl)xmlns:v1 = v1;
+		SET refOut.(XMLNSC.NamespaceDecl)xmlns:ifx = ifx;
+		SET refOut.(XMLNSC.NamespaceDecl)xmlns:v2 = v2;
+
+		DECLARE data ROW;
+		DECLARE value REFERENCE TO data.value;
+		
+		--Homologa código de error AST
+		CALL common.procedures.global.cache.getDataErrorCache(codResp, 'ERRORS', 'AST', value);
+		SET refOut.ifx:Status.ifx:StatusCode 						= value.codeError;
+		SET refOut.ifx:Status.ifx:Severity 	 						= value.severity;
+		SET refOut.ifx:Status.ifx:StatusDesc 						= value.descError;
+		SET refOut.ifx:Status.ifx:AdditionalStatus.ifx:StatusCode 	= statusCode;
+		SET refOut.ifx:Status.ifx:AdditionalStatus.ifx:StatusDesc 	= statusDesc;
+
+		--Referencia a mensaje request para obtener datos requeridos en mensaje de respuesta
+		DECLARE msgOrg ROW;
+		DECLARE refMsgOrg REFERENCE TO msgOrg.data;
+		DECLARE dataOrig CHARACTER refMQRFH2.usr.TraceAudit.TramaIn;
+		DECLARE encod INTEGER COALESCE(InputRoot.MQMD.Encoding, 273);
+		DECLARE ccidv INTEGER COALESCE(InputRoot.MQMD.CodedCharSetId, 819);
+        CREATE LASTCHILD OF refMsgOrg DOMAIN('XMLNSC') PARSE(dataOrig CCSID ccidv);
+       	MOVE refMsgOrg LASTCHILD;
+        MOVE refMsgOrg LASTCHILD;
+        MOVE refMsgOrg LASTCHILD;
+        MOVE refMsgOrg LASTCHILD;
+
+		--Cödigo del estado de la solicitud
+		SET refOut.ifx:RqUID      = COALESCE(refMQRFH2.usr.transactionInfoRq.transactionId, refMsgOrg.*:RqUID);
+		SET refOut.ifx:MsgRqHdr   = refMsgOrg.*:MsgRqHdr;
+		SET refOut.ifx:MsgRqHdr.v2:NextDay   						 = CURRENT_TIMESTAMP;
+		SET refOut.ifx:MsgRsHdr.ifx:TxCostAmt.ifx:CurAmt.ifx:Amt     = '0';
+		SET refOut.ifx:MsgRsHdr.ifx:TxCostAmt.ifx:CurAmt.ifx:CurCode = 'COP';
+		SET refOut.ifx:MsgRsHdr.ifx:EffDt 	 						 = CURRENT_TIMESTAMP;
+		SET refOut.ifx:MsgRsHdr.ifx:RemainRec 						 = 'false';
+		SET refOut.ifx:CustId 										 = refMsgOrg.*:CustId;
+
+		--Envio mensaje de respuesta de servicio
+		RETURN TRUE;
+	END;
+END MODULE;
