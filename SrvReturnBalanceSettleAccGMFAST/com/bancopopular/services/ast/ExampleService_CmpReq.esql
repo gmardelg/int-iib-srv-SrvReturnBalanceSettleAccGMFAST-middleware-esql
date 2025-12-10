@@ -1,4 +1,4 @@
-BROKER SCHEMA com.bancopopular.services.example
+BROKER SCHEMA com.bancopopular.services.ast
 
 CREATE COMPUTE MODULE ExampleService_CmpReq
 	CREATE FUNCTION Main() RETURNS BOOLEAN
