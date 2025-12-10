@@ -1,0 +1,48 @@
+BROKER SCHEMA com.bancopopular.services.example
+
+CREATE COMPUTE MODULE ExampleService_CmpReq
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		/******************************************************/
+		-- Copiar cabeceras de mensaje
+		/******************************************************/
+		SET OutputRoot.MQMD   = InputRoot.MQMD;
+		SET OutputRoot.MQRFH2 = InputRoot.MQRFH2;
+
+		/**********************/
+		-- Declarar referencias
+		/**********************/
+		DECLARE refEnv REFERENCE TO Environment.Variables.headers;
+		DECLARE refMQRFH2 REFERENCE TO OutputRoot.MQRFH2;
+		DECLARE refInp REFERENCE TO InputRoot.XMLNSC;
+
+		-- Valores del request
+		DECLARE rqUid CHARACTER FIELDVALUE(refInp.*:RqUID);
+		DECLARE userId CHARACTER FIELDVALUE(refInp.*:MsgRqHdr.*:UserId.*:GovIssueIdent.*:IdentSerialNum);
+		DECLARE channel CHARACTER FIELDVALUE(refInp.*:MsgRqHdr.*:Channel);
+
+		-- Crear estructura JSON de salida utilizando el patrón OutputRoot.Data.Json
+		CREATE FIELD OutputRoot.Data.Json.request;
+		DECLARE refOut REFERENCE TO OutputRoot.Data.Json.request;
+
+		-- Asignar valores al request JSON
+		SET OutputRoot.Data.Json.request.transactionId = rqUid;
+		SET OutputRoot.Data.Json.request.userId = userId;
+		SET OutputRoot.Data.Json.request.channel = channel;
+
+		-- Crear estructura de trace
+		CREATE FIELD OutputRoot.Data.Json.trace;
+		SET OutputRoot.Data.Json.trace.rqUID = rqUid;
+		SET OutputRoot.Data.Json.trace.timestamp = CURRENT_TIMESTAMP;
+
+		-- Crear estructura de datos adicionales
+		SET OutputRoot.Data.Json.metadata.version = '1.0';
+		SET OutputRoot.Data.Json.metadata.service = 'ExampleService';
+
+		-- Configurar destino REST
+		SET OutputLocalEnvironment.Destination.REST.Request.BaseURL = refMQRFH2.usr.service.baseURL;
+		SET OutputLocalEnvironment.Destination.REST.Request.Timeout = 30000;
+
+		RETURN TRUE;
+	END;
+END MODULE;
