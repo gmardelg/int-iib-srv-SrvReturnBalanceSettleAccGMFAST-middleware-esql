@@ -1,0 +1,37 @@
+BROKER SCHEMA com.bancopopular.services.ast
+ 
+CREATE COMPUTE MODULE ExampleXmlService_CmpReq
+    CREATE FUNCTION Main() RETURNS BOOLEAN
+    BEGIN
+        /******************************************************/
+        -- Copiar cabeceras de mensaje
+        /******************************************************/
+        SET OutputRoot.MQMD   = InputRoot.MQMD;
+        SET OutputRoot.MQRFH2 = InputRoot.MQRFH2;
+ 
+        /**********************/
+        -- Declarar referencias
+        /**********************/
+        DECLARE refEnv   REFERENCE TO Environment.Variables.headers;
+        DECLARE refInp   REFERENCE TO InputRoot.XMLNSC;
+        DECLARE refOut   REFERENCE TO OutputRoot.XMLNSC;
+ 
+        -- Crear estructura XML de salida utilizando el patrón OutputRoot.XMLNSC.
+        CREATE LASTCHILD OF OutputRoot.XMLNSC TYPE XMLNSC.Folder NAME 'Response';
+        SET OutputRoot.XMLNSC.Response.Header.ServiceName     = 'ExampleXmlService';
+        SET OutputRoot.XMLNSC.Response.Header.TransactionId   = FIELDVALUE(refInp.*:RqUID);
+        SET OutputRoot.XMLNSC.Response.Header.Channel         = FIELDVALUE(refInp.*:MsgRqHdr.*:Channel);
+        SET OutputRoot.XMLNSC.Response.Header.UserId          = FIELDVALUE(refInp.*:MsgRqHdr.*:UserId.*:GovIssueIdent.*:IdentSerialNum);
+ 
+        -- Cuerpo de respuesta
+        SET OutputRoot.XMLNSC.Response.Body.StatusCode        = '0';
+        SET OutputRoot.XMLNSC.Response.Body.StatusDesc        = 'OK';
+        SET OutputRoot.XMLNSC.Response.Body.AdditionalInfo    = 'Processed successfully';
+ 
+        -- Ejemplo de uso adicional del patrón XMLNSC con otra rama
+        SET OutputRoot.XMLNSC.Response.Meta.Version           = '1.0';
+        SET OutputRoot.XMLNSC.Response.Meta.SourceSystem      = 'ESB';
+ 
+        RETURN TRUE;
+    END;
+END MODULE;
