@@ -70,7 +70,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET OutputRoot.MQRFH2 	= NULL;
 		--Establecer Endpoint y Timeout para consumir WS
 		SET OutputLocalEnvironment.Destination.REST.Request.BaseURL = refMQRFH2.usr.service.baseURL;
-		SET OutputLocalEnvironment.Destination.REST.Request.Timeout = CAST(refMQRFH2.usr.service.timeOut AS INTEGER);
+		SET OutputLocalEnvironment.Destination.REST.Request.Timeout = 0;
 
 		--Invoca WS
 		RETURN TRUE;
