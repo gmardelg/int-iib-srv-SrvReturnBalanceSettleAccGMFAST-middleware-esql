@@ -98,10 +98,10 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpResp
 		--Cödigo del estado de la solicitud
 		SET refOut.ifx:RqUID      = COALESCE(refMQRFH2.usr.transactionInfoRq.transactionId, refMsgOrg.*:RqUID);
 		SET refOut.ifx:MsgRqHdr   = refMsgOrg.*:MsgRqHdr;
-		SET refOut.ifx:MsgRqHdr.v2:NextDay   						 = CURRENT_TIMESTAMP;
+		SET refOut.ifx:MsgRqHdr.v2:NextDay   						 = app.fechaActual;
 		SET refOut.ifx:MsgRsHdr.ifx:TxCostAmt.ifx:CurAmt.ifx:Amt     = '0';
 		SET refOut.ifx:MsgRsHdr.ifx:TxCostAmt.ifx:CurAmt.ifx:CurCode = 'COP';
-		SET refOut.ifx:MsgRsHdr.ifx:EffDt 	 						 = CURRENT_TIMESTAMP;
+		SET refOut.ifx:MsgRsHdr.ifx:EffDt 	 						 = app.fechaActual;
 		SET refOut.ifx:MsgRsHdr.ifx:RemainRec 						 = 'false';
 		SET refOut.ifx:CustId 										 = refMsgOrg.*:CustId;
 

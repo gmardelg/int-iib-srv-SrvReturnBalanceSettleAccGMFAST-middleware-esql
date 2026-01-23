@@ -61,8 +61,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET refOut.reverse		= false;
 		SET refOut.rqUID		= rqUid;
 		SET refOut.userId		= userId;
-		SET refOut.workingDay  	= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
-
+		SET refOut.workingDay  	= app.fecha;
 		--Envia mensaje de Auditoria
 		PROPAGATE TO TERMINAL 'out1' DELETE NONE;
 
@@ -71,7 +70,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET OutputRoot.MQRFH2 	= NULL;
 		--Establecer Endpoint y Timeout para consumir WS
 		SET OutputLocalEnvironment.Destination.REST.Request.BaseURL = refMQRFH2.usr.service.baseURL;
-		SET OutputLocalEnvironment.Destination.REST.Request.Timeout = CAST(refMQRFH2.usr.service.timeOut AS INTEGER);
+		SET OutputLocalEnvironment.Destination.REST.Request.Timeout = 0;
 
 		--Invoca WS
 		RETURN TRUE;
