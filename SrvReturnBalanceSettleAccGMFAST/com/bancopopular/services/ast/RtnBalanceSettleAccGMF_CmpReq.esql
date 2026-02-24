@@ -22,6 +22,11 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		--Establece cabeceras para generar respuesta
 		SET refEnv.MQMD   = InputRoot.MQMD;
 		SET refEnv.MQRFH2 = InputRoot.MQRFH2;
+		SET refEnv.codOficina = InputRoot.MQRFH2;
+		SET refEnv.nomOficina = InputRoot.name;
+		SET refEnv.usuario = InputRoot.IdentSerialNum;
+		SET refEnv.userId = InputRoot.IdentSerialNum;
+		SET refEnv.workinfDay = InputRoot.ClientDt;
 		SET refEnv.MQRFH2.usr.log.idLog = '2';
 
 		--Valores de mensaje request requeridos para Auditoria AST
