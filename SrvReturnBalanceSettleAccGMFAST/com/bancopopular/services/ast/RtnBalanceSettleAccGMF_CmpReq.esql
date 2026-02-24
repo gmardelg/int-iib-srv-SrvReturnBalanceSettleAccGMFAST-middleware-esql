@@ -26,7 +26,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET refEnv.nomOficina = InputRoot.name;
 		SET refEnv.usuario = InputRoot.IdentSerialNum;
 		SET refEnv.userId = InputRoot.IdentSerialNum;
-		SET refEnv.workinfDay = InputRoot.ClientDt;
+		SET refEnv.workingDay = InputRoot.ClientDt;
 		SET refEnv.MQRFH2.usr.log.idLog = '2';
 
 		--Valores de mensaje request requeridos para Auditoria AST
