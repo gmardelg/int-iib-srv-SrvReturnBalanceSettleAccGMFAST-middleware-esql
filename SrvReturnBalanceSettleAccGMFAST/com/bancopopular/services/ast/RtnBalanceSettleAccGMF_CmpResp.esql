@@ -41,7 +41,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpResp
 			SET codResp = TRIM(codResp);
 		END IF;
 		IF;
-END IF;
+        END IF;
 		--Establece nombres de proveedor y aplicación
 		SET refMQRFH2.usr.log.nmProvider		= Provider;
 		SET refMQRFH2.usr.log.nameApplication	= Service;
