@@ -1,6 +1,5 @@
 BROKER SCHEMA com.bancopopular.services.ast
 
-
 CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpResp
 	CREATE FUNCTION Main() RETURNS BOOLEAN
 	BEGIN
