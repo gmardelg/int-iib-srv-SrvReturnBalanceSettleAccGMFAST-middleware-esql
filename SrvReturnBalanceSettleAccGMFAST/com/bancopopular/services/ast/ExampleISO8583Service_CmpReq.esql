@@ -1,0 +1,41 @@
+BROKER SCHEMA com.bancopopular.services.ast
+ 
+CREATE COMPUTE MODULE ExampleISO8583Service_CmpReq
+    CREATE FUNCTION Main() RETURNS BOOLEAN
+    BEGIN
+        /******************************************************/
+        -- Copiar cabeceras de mensaje
+        /******************************************************/
+        SET OutputRoot.Properties = InputRoot.Properties;
+        SET OutputRoot.MQMD      = InputRoot.MQMD;
+ 
+        /**********************/
+        -- Declarar referencias
+        /**********************/
+        DECLARE refInJson  REFERENCE TO InputRoot.JSON.Data;
+        DECLARE refOutIso  REFERENCE TO OutputRoot.DFDL.ISO8583;
+ 
+        /******************************************************/
+        -- Crear mensaje ISO8583 usando el patrón OutputRoot.DFDL.ISO8583.
+        /******************************************************/
+ 
+        -- MTI
+        SET OutputRoot.DFDL.ISO8583.MTI = '0200';
+ 
+        -- Campos principales (ejemplos)
+        SET OutputRoot.DFDL.ISO8583.PrimaryAccountNumber_002 = refInJson.PrimaryAccountNumber_002;
+        SET OutputRoot.DFDL.ISO8583.AmountTransaction_004   = refInJson.AmountTransaction_004;
+        SET OutputRoot.DFDL.ISO8583.AmountSettlement_005    = refInJson.AmountSettlement_005;
+        SET OutputRoot.DFDL.ISO8583.TransmissionDateTime_007 = refInJson.TransmissionDateTime_007;
+        SET OutputRoot.DFDL.ISO8583.SystemTraceAuditNumber_011 = refInJson.SystemTraceAuditNumber_011;
+ 
+        -- Datos adicionales
+        SET OutputRoot.DFDL.ISO8583.CardAcceptorTerminalId_041 = refInJson.CardAcceptorTerminalId_041;
+        SET OutputRoot.DFDL.ISO8583.CardAcceptorNameLocation_043 = refInJson.CardAcceptorNameLocation_043;
+ 
+        -- Ejemplo de otro campo ISO8583
+        SET OutputRoot.DFDL.ISO8583.CurrencyCodeTransaction_049 = refInJson.CurrencyCodeTransaction_049;
+ 
+        RETURN TRUE;
+    END;
+END MODULE;
