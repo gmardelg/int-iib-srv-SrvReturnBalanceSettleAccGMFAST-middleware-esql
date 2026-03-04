@@ -56,7 +56,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		MOVE refOut TO OutputRoot.JSON.Data.trace;
 
 		SET refOut.branchId		= branchId;
-		SET refOut.channel  	= common.functions.global.cache.getDataHomologationCache(UBSCOMP,Canal,channel,HOMOLOGATION);
+		SET refOut.channel  	= branchId;
 		SET refOut.ipAddr		= ipAddr;
 		SET refOut.reverse		= false;
 		SET refOut.rqUID		= rqUid;
