@@ -20,9 +20,10 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		MOVE refInp LASTCHILD;
 		
 		--Establece cabeceras para generar respuesta
-		SET refEnv.MQMD   = InputRoot.MQMD;
-		SET refEnv.MQRFH2 = InputRoot.MQRFH2;
+		SET refEnv.MQMD   = '2';
+		SET refEnv.MQRFH2 = '2';
 		SET refEnv.MQRFH2.usr.log.idLog = '2';
+
 
 		--Valores de mensaje request requeridos para Auditoria AST
 		DECLARE rqUid		CHARACTER COALESCE(refMQRFH2.usr.transactionInfoRq.transactionId, refInp.*:RqUID);
