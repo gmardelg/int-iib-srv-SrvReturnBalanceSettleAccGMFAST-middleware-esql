@@ -17,7 +17,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpResp
 		DECLARE refMQRFH2 REFERENCE TO OutputRoot.MQRFH2;
 
 		--Establece Idlog correspondiente a respuesta Back-end
-		SET refMQRFH2.usr.log.idLog	= '2';
+		SET refMQRFH2.usr.log.idLog	= '3';
 		--Establece otros datos de Auditoria
 		CALL common.procedures.general.createMsgLogs(refMQRFH2, refMQRFH2.usr.log.idLog, 'WS');
 		
