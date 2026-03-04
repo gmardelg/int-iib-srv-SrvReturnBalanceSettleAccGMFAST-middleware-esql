@@ -7,8 +7,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		/******************************************************/
 		-- Copiar cabeceras de mensaje
 		/******************************************************/
-		SET OutputRoot.MQMD   = InputRoot.MQMD;
-		SET OutputRoot.MQRFH2 = InputRoot.MQRFH2;
+		SET OutputRoot.MQMD   = '2';
+		SET OutputRoot.MQRFH2 = '2';
 		
 		/**********************/
 		-- Declarar referencias
@@ -21,8 +21,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		
 		--Establece cabeceras para generar respuesta
 
-		SET refEnv.MQMD   =  InputRoot.MQMD;
-		SET refEnv.MQRFH2 = InputRoot.MQRFH2;
+		SET refEnv.MQMD   =  '2';
+		SET refEnv.MQRFH2 = '2';
 		SET refEnv.MQRFH2.usr.log.idLog = '2';
 
 
@@ -61,8 +61,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET refOut.channel  	= common.functions.global.cache.getDataHomologationCache(UBSCOMP,Canal,channel,HOMOLOGATION);
 		SET refOut.ipAddr		= ipAddr;
 		SET refOut.reverse		= false;
-		SET refOut.rqUID		= rqUid;
-		SET refOut.userId		= userId;
+		SET refOut.rqUID		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
+		SET refOut.userId		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 		SET refOut.workingDay  	= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 
 		--Envia mensaje de Auditoria
