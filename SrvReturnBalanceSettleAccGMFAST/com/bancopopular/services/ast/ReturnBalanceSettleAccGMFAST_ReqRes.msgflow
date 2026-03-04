@@ -12,7 +12,7 @@
       <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_3" location="540,193" dataSource="AUDITORIA" computeExpression="esql://routine/com.bancopopular.services.ast#RtnBalanceSettleAccGMF_CmpResp.Main">
         <translation xmi:type="utility:ConstantString" string="CmpMsgRs"/>
       </nodes>
-      <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_4" location="233,184" dataSource="AUDITORIA" computeExpression="esql://routine/com.bancopopular.services.ast#RtnBalanceSettleAccGMF_CmpReq.Main" computeMode="destinationAndMessage">
+      <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_4" location="233,184" dataSource="AUDITORIAOTRO" computeExpression="esql://routine/com.bancopopular.services.ast#RtnBalanceSettleAccGMF_CmpReq.Main" computeMode="destinationAndMessage">
         <translation xmi:type="utility:ConstantString" string="CmpMsgRq"/>
       </nodes>
       <nodes xmi:type="ComIbmMQInput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_5" location="78,184" queueName="MQINP.RTNBALANCESETTLEACC.AST.REQ" messageDomainProperty="XMLNSC" transactionMode="no">
