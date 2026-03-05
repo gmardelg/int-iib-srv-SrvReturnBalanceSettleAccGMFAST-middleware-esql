@@ -21,8 +21,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		
 		--Establece cabeceras para generar respuesta
 
-		SET refEnv.MQMD   =  '2';
-		SET refEnv.MQRFH2 = '2';
+		SET refEnv.MQMD   = InputRoot.MQMD;
+		SET refEnv.MQRFH2 = InputRoot.MQRFH2;
 		SET refEnv.MQRFH2.usr.log.idLog = '2';
 
 
