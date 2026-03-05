@@ -29,11 +29,11 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpResp
 
 		IF EXISTS(InputRoot.JSON.Data[]) THEN
 			--Establece información para auditoría a partir de Data de respuesta AST
-			SET OutputRoot.XMLNSC.Data = InputRoot.JSON.Data;
+			SET OutputRoot.JSON.Data = InputRoot.JSON.Data;
 		ELSE
 			--Establece información para auditoría a partir de Header de respuesta AST
-			SET OutputRoot.XMLNSC.Data."HTTPResponseHeader".Status.statusCode = statusCode;
-			SET OutputRoot.XMLNS.Data."HTTPResponseHeader".Status.statusDesc = statusDesc;
+			SET OutputRoot.JSON.Data."HTTPResponseHeader".Status.statusCode = statusCode;
+			SET OutputRoot.JSON.Data."HTTPResponseHeader".Status.statusDesc = statusDesc;
 		END IF;
 		
 		IF CAST(codResp AS INTEGER) = 0 THEN
