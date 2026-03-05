@@ -42,8 +42,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET refMQRFH2.usr.log.nameApplication	= Service;
 
 		--Crea contenedor Body
-		CREATE FIELD OutputRoot.JSON.Data.body;
-		DECLARE refOut REFERENCE TO OutputRoot.JSON.Data.body;
+		CREATE FIELD OutputRoot.XML.Data.body;
+		DECLARE refOut REFERENCE TO OutputRoot.XML.Data.body;
 		
 		MOVE refInp LASTCHILD;
  		SET refOut.codOficina	 = branchId;
@@ -52,8 +52,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET refOut.usuario		 = userId;		
 
 		--Crea contenedor trace
-		CREATE FIELD OutputRoot.JSON.Data.trace;
-		MOVE refOut TO OutputRoot.JSON.Data.trace;
+		CREATE FIELD OutputRoot.XML.Data.trace;
+		MOVE refOut TO OutputRoot.XML.Data.trace;
 
 		SET refOut.branchId		= branchId;
 		SET refOut.channel  	= common.functions.global.cache.getDataHomologationCache(UBSCOMP,Canal,channel,HOMOLOGATION);
