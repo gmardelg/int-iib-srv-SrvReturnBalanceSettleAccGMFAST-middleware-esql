@@ -40,17 +40,17 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		CALL common.procedures.general.createMsgLogs(refMQRFH2, refMQRFH2.usr.log.idLog, 'WS');
 
 		--Establece nombres de proveedor y aplicación
-		SET refMQRFH2.usr.log.nmProvider		= Provider;
-		SET refMQRFH2.usr.log.nameApplication	= Service;
+		SET refMQRFH2.usr.log.nmProvider		= 'hola';
+		SET refMQRFH2.usr.log.nameApplication	= 'hola';
 
 		--Crea contenedor Body
 		CREATE FIELD OutputRoot.JSON.Data.body;
 		DECLARE refOut REFERENCE TO OutputRoot.JSON.Data.body;
 		
 		MOVE refInp LASTCHILD;
- 		SET refOut.codOficina	 = branchId;
-		SET refOut.idRegistro	 = rqUid;
-		SET refOut.nomOficina	 = branchname;
+ 		SET refOut.codOficina	 = 'hola';
+		SET refOut.idRegistro	 = 'hola';
+		SET refOut.nomOficina	 = 'hola';
 		SET refOut.usuario		 = userId;		
 
 		--Crea contenedor trace
@@ -59,8 +59,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 
 		SET refOut.branchId		= branchId;
 		SET refOut.channel  	= common.functions.global.cache.getDataHomologationCache(UBSCOMP,Canal,channel,HOMOLOGATION);
-		SET refOut.ipAddr		= ipAddr;
-		SET refOut.reverse		= false;
+		SET refOut.ipAddr		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
+		SET refOut.reverse		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 		SET refOut.rqUID		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 		SET refOut.userId		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 		SET refOut.workingDay  	= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
