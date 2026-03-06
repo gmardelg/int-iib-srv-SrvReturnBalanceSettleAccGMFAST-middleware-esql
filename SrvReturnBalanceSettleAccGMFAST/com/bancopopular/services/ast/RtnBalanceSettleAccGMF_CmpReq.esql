@@ -20,9 +20,11 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		MOVE refInp LASTCHILD;
 		
 		--Establece cabeceras para generar respuesta
+
 		SET refEnv.MQMD   = InputRoot.MQMD;
 		SET refEnv.MQRFH2 = InputRoot.MQRFH2;
 		SET refEnv.MQRFH2.usr.log.idLog = '2';
+
 
 		--Valores de mensaje request requeridos para Auditoria AST
 		DECLARE rqUid		CHARACTER COALESCE(refMQRFH2.usr.transactionInfoRq.transactionId, refInp.*:RqUID);
@@ -46,9 +48,9 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		DECLARE refOut REFERENCE TO OutputRoot.JSON.Data.body;
 		
 		MOVE refInp LASTCHILD;
- 		SET refOut.codOficina	 = branchId;
+ 		SET refOut.codOficina	 = brachId;
 		SET refOut.idRegistro	 = rqUid;
-		SET refOut.nomOficina	 = branchname;
+		SET refOut.nomOficina	 = brachName;
 		SET refOut.usuario		 = userId;		
 
 		--Crea contenedor trace
@@ -58,8 +60,8 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		SET refOut.branchId		= branchId;
 		SET refOut.channel  	= common.functions.global.cache.getDataHomologationCache(UBSCOMP,Canal,channel,HOMOLOGATION);
 		SET refOut.ipAddr		= ipAddr;
-		SET refOut.reverse		= false;
-		SET refOut.rqUID		= rqUid;
+		SET refOut.reverse		= reverse;
+		SET refOut.rqUID		= rqUID;
 		SET refOut.userId		= userId;
 		SET refOut.workingDay  	= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 
