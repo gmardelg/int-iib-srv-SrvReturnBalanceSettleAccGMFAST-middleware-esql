@@ -8,7 +8,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		-- Copiar cabeceras de mensaje
 		/******************************************************/
 		SET OutputRoot.MQMD   = InputRoot.MQMD;
-		SET OutputRoot.MQRFH2 = '2';
+		SET OutputRoot.MQRFH2 = InputRoot.MQRFH2;
 		
 		/**********************/
 		-- Declarar referencias
