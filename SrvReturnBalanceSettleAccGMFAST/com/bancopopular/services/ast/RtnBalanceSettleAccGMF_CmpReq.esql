@@ -59,9 +59,9 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 
 		SET refOut.branchId		= branchId;
 		SET refOut.channel  	= common.functions.global.cache.getDataHomologationCache(UBSCOMP,Canal,channel,HOMOLOGATION);
-		SET refOut.ipAddr		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
-		SET refOut.reverse		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
-		SET refOut.rqUID		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
+		SET refOut.ipAddr		= ipAddr;
+		SET refOut.reverse		= reverse;
+		SET refOut.rqUID		= rqUID;
 		SET refOut.userId		= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 		SET refOut.workingDay  	= REPLACE(SUBSTRING(fechaTrx BEFORE 'T'),'-')||SPACE(1)||REPLACE(SUBSTRING(fechaTrx AFTER 'T' FOR 8),':');
 
