@@ -9,6 +9,7 @@ CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
 		/******************************************************/
 		SET OutputRoot.MQMD   = InputRoot.MQMD;
 		SET OutputRoot.MQRFH2 = InputRoot.MQRFH2;
+        SET OutputRoot.MQMD.expiry = UDP_MQEXPIRY
 		
 		/**********************/
 		-- Declarar referencias
