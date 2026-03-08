@@ -25,7 +25,7 @@
  
     <composition>
 <!-- Nodo de entrada MQ -->
-<nodes xmi:type="ComIbmMQInput.msgnode:FCMComposite_1"
+<nodes xmi:type="ComIbmRESTRequest.msgnode:FCMComposite_1"
              xmi:id="FCMComposite_1_1"
              location="80,150"
              queueName="EXAMPLE.ASYNC.IN"
@@ -35,7 +35,7 @@
 </nodes>
  
       <!-- Nodo Compute para lógica de negocio -->
-<nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1"
+<nodes xmi:type="ComIbmRESTRequest.msgnode:FCMComposite_1"
              xmi:id="FCMComposite_1_2"
              location="260,150"
              computeExpression="esql://routine/com.bancopopular.services.ast#ExampleAsync_Cmp.Main"
@@ -44,7 +44,7 @@
 </nodes>
  
       <!-- Nodo MQOutput para enviar el mensaje a backend/cola destino -->
-<nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1"
+<nodes xmi:type="ComIbmRESTRequest.msgnode:FCMComposite_1"
              xmi:id="FCMComposite_1_3"
              location="440,150"
              queueName="EXAMPLE.ASYNC.OUT"
