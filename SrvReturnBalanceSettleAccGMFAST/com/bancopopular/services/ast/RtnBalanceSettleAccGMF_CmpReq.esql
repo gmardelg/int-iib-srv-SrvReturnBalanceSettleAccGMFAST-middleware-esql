@@ -1,4 +1,4 @@
-BROKER SCHEMA com.bancopopular.services.ast
+BROKER SCHEMA com.bancopopular.services.ast 
 
 
 CREATE COMPUTE MODULE RtnBalanceSettleAccGMF_CmpReq
