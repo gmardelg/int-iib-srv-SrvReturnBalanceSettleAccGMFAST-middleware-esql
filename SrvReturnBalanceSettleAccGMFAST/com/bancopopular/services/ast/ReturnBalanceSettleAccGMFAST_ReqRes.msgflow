@@ -15,16 +15,16 @@
       <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_4" location="233,184" dataSource="AUDITORIA" computeExpression="esql://routine/com.bancopopular.services.ast#RtnBalanceSettleAccGMF_CmpReq.Main" computeMode="destinationAndMessage">
         <translation xmi:type="utility:ConstantString" string="CmpMsgRq"/>
       </nodes>
-      <nodes xmi:type="ComIbmMQInput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_5" location="78,184" queueName="MQINP.RTNBALANCESETTLEACC.AST.REQ" messageDomainProperty="XMLNSC">
+      <nodes xmi:type="ComIbmMQInput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_5" location="78,184" queueName="MQINP.RTNBALANCESETTLEACC.AST.REQ" messageDomainProperty="XMLNSC" transactionMode="no">
         <translation xmi:type="utility:ConstantString" string="MQ_SERVICE.IN"/>
       </nodes>
       <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_6" location="230,37" dataSource="AUDITORIA" computeExpression="esql://routine/common.modules.general#CmpCreateMsgErrorSRVyRs_IFX_REQ.Main" computeMode="destinationAndMessage">
         <translation xmi:type="utility:ConstantString" string="CmpGetInfoError"/>
       </nodes>
-      <nodes xmi:type="ComIbmMQReply.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_7" location="687,194" transactionMode="YES">
+      <nodes xmi:type="ComIbmMQReply.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_7" location="687,194" transactionMode="no">
         <translation xmi:type="utility:ConstantString" string="MQReply"/>
       </nodes>
-      <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_8" location="571,268" queueName="LOG.REGISTER.REQ">
+      <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_8" location="571,268" queueName="LOG.REGISTER.REQ" transactionMode="no">
         <translation xmi:type="utility:ConstantString" string="LOG.REGISTER.REQ"/>
       </nodes>
       <nodes xmi:type="ComIbmRESTRequest.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_9" location="362,185" definitionType="swagger_20" definitionFile="Api-Documentation.json" operationName="updateUsingPOST" timeoutForServer="10" protocol="TLSv1.2" hostnameChecking="false" acceptCompressedResponses="true">
