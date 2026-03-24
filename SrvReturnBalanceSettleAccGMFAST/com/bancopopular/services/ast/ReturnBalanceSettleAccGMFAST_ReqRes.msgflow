@@ -27,7 +27,7 @@
       <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_8" location="571,268" queueName="LOG.REGISTER.REQ" transactionMode="no">
         <translation xmi:type="utility:ConstantString" string="LOG.REGISTER.REQ"/>
       </nodes>
-      <nodes xmi:type="ComIbmRESTRequest.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_9" location="362,185" definitionType="swagger_20" definitionFile="Api-Documentation.json" operationName="updateUsingPOST" timeoutForServer="10" protocol="TLSv1.2" hostnameChecking="false" acceptCompressedResponses="true">
+      <nodes xmi:type="ComIbmRESTRequest.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_9" location="362,185" definitionType="swagger_20" definitionFile="Api-Documentation.json" operationName="updateUsingPOST" timeoutForServer="5" protocol="TLSv1.2" hostnameChecking="false" acceptCompressedResponses="true">
         <translation xmi:type="utility:ConstantString" string="updateUsingPOST"/>
       </nodes>
       <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_1" targetNode="FCMComposite_1_7" sourceNode="FCMComposite_1_3" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in"/>
