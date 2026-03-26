@@ -1,0 +1,56 @@
+[
+    {
+        "id": "subflow_id_001",
+        "type": "subflow",
+        "name": "Convertidor a Mayúsculas",
+        "info": "Este subflujo convierte el payload a mayúsculas y añade un timestamp.",
+        "category": "utilidades",
+        "in": [
+            {
+                "x": 50,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "node_logic_001"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 400,
+                "y": 80,
+                "wires": [
+                    {
+                        "id": "node_logic_001",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {
+            "module": "node-red-contrib-ejemplo",
+            "type": "uppercase-utility",
+            "version": "1.0.0"
+        },
+        "color": "#DDAA99"
+    },
+    {
+        "id": "node_logic_001",
+        "type": "function",
+        "z": "subflow_id_001",
+        "name": "Procesar Texto",
+        "func": "msg.payload = msg.payload.toString().toUpperCase();\nmsg.timestamp = Date.now();\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 220,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    }
+]
