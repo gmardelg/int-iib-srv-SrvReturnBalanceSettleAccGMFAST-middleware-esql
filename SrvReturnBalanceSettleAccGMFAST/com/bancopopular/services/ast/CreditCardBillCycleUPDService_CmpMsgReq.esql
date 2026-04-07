@@ -1,0 +1,188 @@
+BROKER SCHEMA co.com.bancopopular.prodschnsmngt.services.mq
+
+/************************ COMENTARIO ESQL MODULO ********************************************
+OBJETIVO DEL MODULO: Prepara el mensaje Request para insertar cambio en clico de facturación
+*********************************************************************************************
+FECHA		: 20/11/2025
+AUTOR		: Célula Tarjeta Crédito
+*********************************************************************************************/
+CREATE COMPUTE MODULE CmpMappingReqAudit
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		/*Paso de cabeceras de mensaje*/
+		CALL CopyMessageHeaders();	
+		/******************************************************/
+		-- Copiar cabeceras de mensaje
+		/******************************************************/
+		SET OutputRoot.MQMD 							= InputRoot.MQMD;
+		SET OutputRoot.MQMD.CorrelId    				= InputRoot.MQMD.MsgId;
+		SET OutputRoot.MQMD.Expiry 						= CTE_MQEXPIRY;
+		SET OutputRoot.MQRFH2 							= InputRoot.MQRFH2;
+		SET OutputRoot.MQRFH2.usr.QueueRes				= InputRoot.MQMD.ReplyToQ;
+		SET OutputRoot.MQRFH2.usr.service.nameProvider 	= CTE_Provider;		
+		SET OutputRoot.MQRFH2.usr.MsgIn					= InputRoot.XMLNSC;
+
+
+		/******************************************************/
+		-- Declarar referencias
+		/******************************************************/
+		--IN
+		DECLARE refEnv REFERENCE TO Environment;
+		DECLARE refMQRFH2 REFERENCE TO OutputRoot.MQRFH2;
+		DECLARE refInpRoot REFERENCE TO InputRoot;
+		DECLARE refInp REFERENCE TO InputRoot.XMLNSC;
+		DECLARE refIn REFERENCE TO InputRoot.XMLNSC;
+		
+		DECLARE refDataRq REFERENCE TO refInp.*:CreditCardBillCycleUPDRequest.*:CreditCardBillCycleUPDRq.*:DataRq;
+				
+		--OUT
+		CREATE FIELD OutputRoot.XMLNSC.VMX_ROOT;
+		DECLARE outputRef REFERENCE TO OutputRoot.XMLNSC.VMX_ROOT;		
+		
+		/******************************************************/
+		-- Setear información para auditoría
+		/******************************************************/
+		SET refMQRFH2.usr.service.name	= CTE_APLICATION;
+		SET refMQRFH2.usr.log.idLog		= CTE_IDLog_2;
+		SET refMQRFH2.usr.log.nameSrv	= CTE_Operation; 
+		SET OutputRoot.MQRFH2.usr.service.nameProvider 	= CTE_Provider;
+		CALL common.procedures.general.createMsgLogs_V2(refMQRFH2, refMQRFH2.usr.log.idLog, CTE_InvocationType);
+		CALL common.procedures.general.saveMQM(refInpRoot, refEnv, InputRoot.MQRFH2.usr.log.idLog);
+		SET OutputRoot.MQRFH2.usr.log.nameApplication	= CTE_APLICATION; 
+		SET refMQRFH2.usr.log.idService 				= CTE_APLICATION;
+		
+		
+		/******************************************************/
+		-- Copia de cabecera propia IFX
+		/******************************************************/
+			
+		MOVE refInp LASTCHILD;
+		MOVE refInp LASTCHILD;
+		
+		CALL common.procedures.general.processICBSHeader(refInp, refEnv);
+		DECLARE Data ROW;
+		
+		DECLARE valData ROW;
+		DECLARE value REFERENCE TO valData;
+		
+		
+		/******************************************************/		
+		--Declaración de variables WSRR para enrutamiento
+		/******************************************************/
+		
+		DECLARE infoWSRR CHARACTER;
+		SET infoWSRR = Environment.Variables.headers.MQRFH2.usr.infoConfig;
+		
+		DECLARE wsrrValues ROW;
+		DECLARE refWsrrData REFERENCE TO wsrrValues.data;
+    	CREATE LASTCHILD OF refWsrrData DOMAIN('XMLNSC') PARSE(infoWSRR CCSID 1208);
+		
+		DECLARE refWsrrQueueNams REFERENCE TO wsrrValues.XMLNSC.srvConfiguration.service;
+		
+		/******************************************************/
+		-- Creación mensaje para Backend
+		/******************************************************/
+        
+        IF refDataRq.*:BillingCycle = CTE_Ciclo15 OR refDataRq.*:BillingCycle = CTE_Ciclo31 THEN 
+        	
+	        SET outputRef.VMX_HEADER.MSGID 			= CTE_SERVICE_BACKEND; 
+			SET outputRef.VMX_HEADER.VERSION 		= CTE_VERSION; 
+			SET outputRef.VMX_HEADER.CLIENTID 		= CTE_ORG;
+			SET outputRef.VMX_HEADER.CORRELID 		= TRIM(refMQRFH2.usr.transactionInfoRq.transactionId);
+			SET outputRef.VMX_HEADER.CONTEXT 		= CTE_CONTEXT;
+			SET outputRef.VMX_HEADER.NAME 			= CTE_NAME;
+			SET outputRef.VMX_MSGIN.CONTEXT 		= CTE_CONTEXT;
+			SET outputRef.VMX_MSGIN.NAME			= CTE_NAME;
+			SET outputRef.VMX_MSGIN.ORG 			= CTE_ORG;
+	        SET outputRef.VMX_MSGIN.ACCT_NBR 		= FIELDVALUE(refDataRq.*:AccountNumber);
+	        SET outputRef.VMX_MSGIN.BILL_CYC		= FIELDVALUE(refDataRq.*:BillingCycle);
+	
+				
+			/******************************************************/
+			-- Envío para auditoría
+			/******************************************************/
+			PROPAGATE TO TERMINAL CTE_OUT1 DELETE NONE;		
+			SET OutputRoot.MQRFH2.ReturnedMessage.MensajeEntradaMQ = ASBITSTREAM(refIn);	-- Almacenando el mensaje para utilizar en el response	
+			SET Environment.Variables.objError = CTE_Vacio;
+			DECLARE refOutputRoot REFERENCE TO OutputRoot;
+			CALL common.procedures.general.SetMQExpiry(refOutputRoot);
+			
+			PROPAGATE TO TERMINAL CTE_OUT2 DELETE NONE;	
+			
+			/******************************************************/
+			-- Creacion de mensaje de respuesta hacia la fachada
+			/******************************************************/
+			
+        ELSE 
+        	SET OutputRoot.XMLNSC = NULL;
+        		
+        	/******************************************************/
+			-- Declaración de namespaces propios de servicio
+			/******************************************************/
+			DECLARE ifx NAMESPACE refMQRFH2.usr.response.WS.nameSpace.*:ifx;
+			DECLARE v2 NAMESPACE refMQRFH2.usr.response.WS.nameSpace.*:v2;
+			DECLARE v1 NAMESPACE refMQRFH2.usr.response.WS.nameSpace.*:v1;
+						
+			/******************************************************/
+			-- Creación mensaje para cliente
+			/******************************************************/
+			CREATE FIELD OutputRoot.XMLNSC.v1:CreditCardBillCycleUPDResponse.v1:CreditCardBillCycleUPDRs;
+			DECLARE refOut REFERENCE TO OutputRoot.XMLNSC.v1:CreditCardBillCycleUPDResponse.v1:CreditCardBillCycleUPDRs;
+				
+			SET refOut.(XMLNSC.NamespaceDecl)xmlns:v1  = v1;
+			SET refOut.(XMLNSC.NamespaceDecl)xmlns:ifx = ifx;
+			SET refOut.(XMLNSC.NamespaceDecl)xmlns:v2  = v2;
+				
+			SET refOut.ifx:Status.ifx:StatusCode 							= CTE_ErrorCode;
+			SET refOut.ifx:Status.ifx:Severity 								= CTE_Error;
+			SET refOut.ifx:Status.ifx:StatusDesc 							= CTE_CICLO_ERRONEO;
+			SET refOut.ifx:Status.ifx:AdditionalStatus.ifx:StatusCode 		= CTE_ErrorCode;
+			SET refOut.ifx:Status.ifx:AdditionalStatus.ifx:StatusDesc 		= CTE_CICLO_ERRONEO;
+			SET refOut.ifx:RqUID 											= refMQRFH2.usr.transactionInfoRq.transactionId;
+			SET refOut.ifx:ApprovalId										= refMQRFH2.usr.transactionInfoRq.transactionId;
+			SET refOut.ifx:MsgRqHdr 										= Environment.Variables.commonHeader.MsgRqHdr;
+			
+		-- Envío para auditoría
+        PROPAGATE TO TERMINAL CTE_OUT3 DELETE NONE;
+        
+        END IF;	
+	
+	END;
+	--Paso de cabeceras de mensaje
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+END MODULE;
+
+
+/********* COMENTARIO ESQL MODULO *********************
+OBJETIVO DEL MODULO: Guardar mensaje Request
+*******************************************************
+FECHA		: 20/11/2025
+AUTOR		: Célula Tarjeta Crédito
+******************************************************/
+CREATE COMPUTE MODULE CreditCardBillCycleUPD_BillingCycle_REQ_CmpSaveMsg
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		--Paso de cabeceras de mensaje
+		CALL CopyMessageHeaders();	 
+		 SET OutputRoot.XMLNSC.ReturnedMessage.Variables = Environment;
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+END MODULE;
