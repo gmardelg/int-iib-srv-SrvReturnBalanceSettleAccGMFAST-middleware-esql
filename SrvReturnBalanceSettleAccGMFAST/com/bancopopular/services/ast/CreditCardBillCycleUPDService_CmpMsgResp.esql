@@ -1,0 +1,131 @@
+BROKER SCHEMA co.com.bancopopular.prodschnsmngt.services.mq
+
+
+/************************ COMENTARIO ESQL MODULO ********************************************
+OBJETIVO DEL MODULO: Recibe el mensaje Response de insertar cambio en clico de facturación
+*********************************************************************************************
+FECHA		: 20/11/2025
+AUTOR		: Célula Tarjeta Crédito
+*********************************************************************************************/
+CREATE COMPUTE MODULE CreditCardBillCycleUPD_BillingCycle_RESP_CmpMappingRespAudit
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		/******************************************************/
+		-- Copiar cabeceras de mensaje
+		/******************************************************/
+
+		SET OutputRoot.Properties = InputRoot.Properties;
+		SET OutputRoot.MQMD		= InputRoot.MQMD;
+		IF EXISTS(InputRoot.MQRFH2[]) THEN 
+			SET OutputRoot.MQRFH2 = InputRoot.MQRFH2; 
+		ELSE
+			SET OutputRoot.MQRFH2 = Environment.Variables.headers.MQRFH2;
+		END IF;
+		
+				
+		/******************************************************/	
+		-- Declarar referencias
+		/******************************************************/
+		
+		DECLARE refEnv REFERENCE TO Environment;
+		DECLARE refInp REFERENCE TO InputRoot.XMLNSC.VMX_ROOT.VMX_MSGOUT; --Respuesta de Fiserv
+	
+		DECLARE valData ROW;
+		DECLARE value REFERENCE TO valData;
+		
+		DECLARE dataRow ROW;
+		DECLARE refValue REFERENCE TO dataRow.value;
+		/******************************************************/
+		-- Copiar identificadores de mensaje
+		/******************************************************/
+		DECLARE refMQRFH2 REFERENCE TO OutputRoot.MQRFH2;
+		DECLARE refInpRoot REFERENCE TO InputRoot; 
+		
+	
+		/******************************************************/
+		-- Setear información para auditoría
+		/******************************************************/
+		
+		SET OutputRoot.XMLNSC									= InputRoot.XMLNSC;
+		SET refMQRFH2.usr.log.idLog								= CTE_IDLog_3;
+		SET OutputRoot.MQRFH2.usr.service.nameProvider 			= CTE_Provider;
+		SET Environment.Variables.headers.MQRFH2.usr.log.idLog 	= refMQRFH2.usr.log.idLog;
+		CALL common.procedures.general.createMsgLogs_V2(refMQRFH2, refMQRFH2.usr.log.idLog, CTE_InvocationType);
+		CALL common.procedures.general.saveMQM(refInpRoot, refEnv,refMQRFH2.usr.log.idLog);	
+
+		CALL common.procedures.fcd.getValuesConfigService_V2(refMQRFH2.usr.infoConfigTree, CTE_name, value);
+		SET OutputRoot.MQRFH2.usr.log.nameApplication	= CTE_APLICATION;
+		SET refMQRFH2.usr.log.nameSrv					= value;
+		SET refMQRFH2.usr.log.idService 				= CTE_APLICATION;	
+		
+		--Envio a Auditoria
+	
+		PROPAGATE TO TERMINAL CTE_OUT1 DELETE NONE;
+		SET OutputRoot.XMLNSC = NULL;
+		SET OutputRoot.MQRFH2.usr.log.idService	= CTE_APLICATION_FCD;	
+		
+		/******************************************************/
+		-- Declaración de namespaces propios de servicio
+		/******************************************************/
+		DECLARE ifx NAMESPACE refMQRFH2.usr.response.WS.nameSpace.*:ifx;
+		DECLARE v2 NAMESPACE refMQRFH2.usr.response.WS.nameSpace.*:v2;
+		DECLARE v1 NAMESPACE refMQRFH2.usr.response.WS.nameSpace.*:v1;
+				
+		/******************************************************/
+		-- Creación mensaje para cliente
+		/******************************************************/
+		CREATE FIELD OutputRoot.XMLNSC.v1:CreditCardBillCycleUPDResponse.v1:CreditCardBillCycleUPDRs;
+		DECLARE refOut REFERENCE TO OutputRoot.XMLNSC.v1:CreditCardBillCycleUPDResponse.v1:CreditCardBillCycleUPDRs;
+		
+		SET refOut.(XMLNSC.NamespaceDecl)xmlns:v1  = v1;
+		SET refOut.(XMLNSC.NamespaceDecl)xmlns:ifx = ifx;
+		SET refOut.(XMLNSC.NamespaceDecl)xmlns:v2  = v2;
+	
+		DECLARE descripcion, codResp CHARACTER CTE_Vacio;
+		DECLARE EffDt CHARACTER CAST(CURRENT_TIMESTAMP AS CHARACTER);
+		
+		IF refInp.SVC_RETURN = CTE_SuccessCodeFDT THEN
+			SET codResp = CTE_CODRESP;			
+		ELSE
+			SET codResp = COALESCE(refInp.RC_DATA.RETURN_CODE, CTE_GeneralErrorCodeFDT);
+		END IF;
+		
+		CALL common.procedures.global.cache.getDataErrorCache(codResp, CTE_ErrorsCache, CTE_Provider, refValue);
+		
+		-- Copiar encabezado estándar de la solicitud almacenado en variables de entorno
+		SET refOut.ifx:MsgRqHdr 										= Environment.Variables.commonHeader.MsgRqHdr;
+		SET refOut.ifx:Status.ifx:StatusCode 							= CAST(refValue.codeError AS INTEGER);
+		SET refOut.ifx:Status.ifx:Severity 								= refValue.severity;
+		SET refOut.ifx:Status.ifx:StatusDesc 							= refValue.descError;
+		SET refOut.ifx:Status.ifx:AdditionalStatus.ifx:StatusCode 		= codResp;
+		SET refOut.ifx:Status.ifx:AdditionalStatus.ifx:StatusDesc 		= COALESCE(refInp.RC_DATA.RETURN_DESC,refValue.descError);
+		
+		-- Asignar identificadores de la transacción provenientes del MQRFH2
+		SET refOut.ifx:RqUID 											= refMQRFH2.usr.transactionInfoRq.transactionId;
+		SET refOut.ifx:ApprovalId										= refMQRFH2.usr.transactionInfoRq.transactionId;
+		
+		SET refOut.ifx:MsgRqHdr.ifx:ClientApp.ifx:Org 			        = refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.ClientApp.Org;
+		SET refOut.ifx:MsgRqHdr.ifx:ClientApp.ifx:Name			        = refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.ClientApp.Name;
+		SET refOut.ifx:MsgRqHdr.ifx:ClientApp.ifx:Version 			    = refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.ClientApp.Version;
+		SET refOut.ifx:MsgRqHdr.v2:Channel								= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.Channel;
+		SET refOut.ifx:MsgRqHdr.ifx:BankInfo.ifx:BankId                 = refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.BankInfo.BankId;    
+		SET refOut.ifx:MsgRqHdr.v2:ClientDt								= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.ClientDt;
+		SET refOut.ifx:MsgRqHdr.v2:IPAddr 								= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.IPAddr;
+		SET refOut.ifx:MsgRqHdr.v2:SessKey								= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.SessKey;
+		
+		-- Información de identificación del usuario que ejecuta la transacción
+		SET refOut.ifx:MsgRqHdr.ifx:UserId.ifx:CustLoginId 							= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.UserId.CustLoginId;
+		SET refOut.ifx:MsgRqHdr.ifx:UserId.ifx:GovIssueIdent.ifx:GovIssueIdentType	= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.UserId.GovIssueIdent.GovIssueIdentType;
+		SET refOut.ifx:MsgRqHdr.ifx:UserId.ifx:GovIssueIdent.ifx:IdentSerialNum	 	= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.UserId.GovIssueIdent.IdentSerialNum;
+		SET refOut.ifx:MsgRqHdr.v2:KeyAcctId 										= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.KeyAcctId;
+		SET refOut.ifx:MsgRqHdr.v2:Reverse								= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.Reverse;
+		SET refOut.ifx:MsgRqHdr.v2:Language 							= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.Language;
+		SET refOut.ifx:MsgRqHdr.v2:NextDay 								= refMQRFH2.usr.MsgIn.CreditCardBillCycleUPDRequest.CreditCardBillCycleUPDRq.MsgRqHdr.NextDay;
+		
+		SET Environment.Variables.objError = CTE_Vacio;
+		DECLARE refOutputRoot REFERENCE TO OutputRoot;
+		CALL common.procedures.general.SetMQExpiry(refOutputRoot);
+		RETURN TRUE;
+	END;	
+END MODULE;
+
