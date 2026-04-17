@@ -1,5 +1,0 @@
-DEFINE QLOCAL ('MQINP.RTNBALANCESETTLEACC.AST.REQ') +
-                BOQNAME('SYSTEM.DEAD.LETTER.QUEUE') +
-                BOTHRESH(1) +
-				MAXDEPTH(5000) +
-                REPLACE
